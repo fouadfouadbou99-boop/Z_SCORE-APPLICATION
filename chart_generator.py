@@ -1,15 +1,13 @@
 import matplotlib.pyplot as plt
 
 
-def generate_score_chart(
-        scores,
-        output_path):
+def generate_score_chart(scores, output_path):
 
     labels = list(scores.keys())
 
     values = list(scores.values())
 
-    plt.figure(figsize=(8,4))
+    plt.figure(figsize=(8, 4))
 
     plt.plot(
         labels,
@@ -33,3 +31,4 @@ def generate_score_chart(
     plt.close()
 
     return output_path
+``
