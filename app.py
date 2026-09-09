@@ -2,29 +2,14 @@ import streamlit as st
 import pandas as pd
 
 from scoring import calculate_scores
-from rating import (
-    get_rating_details,
-    get_trend
-)
-
-from trend_analysis import (
-    calculate_historical_scores
-)
-
-from report_generator import (
-    generate_excel_report
-)
-
-from pdf_generator import (
-    generate_pdf_report
-)
-
-from chart_generator import (
-    generate_score_chart
-)
+from rating import get_rating_details, get_trend
+from trend_analysis import calculate_historical_scores
+from report_generator import generate_excel_report
+from pdf_generator import generate_pdf_report
+from chart_generator import generate_score_chart
 
 # =====================================================
-# CONFIGURATION PAGE
+# CONFIGURATION
 # =====================================================
 
 st.set_page_config(
@@ -34,77 +19,63 @@ st.set_page_config(
 )
 
 # =====================================================
-# SESSION STATE
+# SESSION
 # =====================================================
 
 if "reset_counter" not in st.session_state:
-    st.session_state.reset_counter = 0
+    st.session_state["reset_counter"] = 0
 
 # =====================================================
-# HEADER
+# TITRE
 # =====================================================
 
 st.title("📈 Application de Calcul de Z-Score")
 
 st.markdown("""
-Cette application permet :
+Cette application permet de :
 
-- Calcul des Z-Scores
-- Calcul du Score Quantitatif Global
-- Attribution d'un Rating
-- Analyse de Tendance
-- Génération Excel
-- Génération PDF
+- Calculer les Z-Scores
+- Calculer le Score Quantitatif Global
+- Attribuer un Rating
+- Analyser la tendance
+- Générer un rapport Excel
+- Générer un rapport PDF
 """)
 
 # =====================================================
-# BARRE D'ACTIONS
+# ACTIONS
 # =====================================================
 
-col1, col2, col3 = st.columns([1, 1, 2])
+col1, col2 = st.columns([1, 4])
 
 with col1:
 
-    reset_clicked = st.button(
-        "🔄 Réinitialiser",
-        use_container_width=True
-    )
+    if st.button("🔄 Réinitialiser"):
 
-with col2:
-
-    st.empty()
-
-with col3:
-
-    st.empty()
-
-if reset_clicked:
-
-    st.session_state.reset_counter += 1
-
-    st.rerun()
+        st.session_state["reset_counter"] += 1
+        st.rerun()
 
 # =====================================================
-# UPLOAD FICHIER
+# UPLOAD
 # =====================================================
 
 uploaded_file = st.file_uploader(
     "Charger le fichier Excel",
     type=["xlsx"],
-    key=f"uploader_{st.session_state.reset_counter}"
+    key=f"upload_{st.session_state['reset_counter']}"
 )
 
 # =====================================================
-# TRAITEMENT
+# ANALYSE
 # =====================================================
 
-if uploaded_file is not None:
+if uploaded_file:
 
     try:
 
-        # ============================================
-        # CALCUL PRINCIPAL
-        # ============================================
+        # -------------------------------------------------
+        # Calcul principal
+        # -------------------------------------------------
 
         results_df, score_global = calculate_scores(
             uploaded_file
@@ -114,9 +85,9 @@ if uploaded_file is not None:
             score_global
         )
 
-        # ============================================
-        # RELECTURE DU FICHIER
-        # ============================================
+        # -------------------------------------------------
+        # Relecture du fichier
+        # -------------------------------------------------
 
         uploaded_file.seek(0)
 
@@ -124,22 +95,16 @@ if uploaded_file is not None:
             uploaded_file
         )
 
-        # ============================================
-        # HISTORIQUE
-        # ============================================
+        # -------------------------------------------------
+        # Historique
+        # -------------------------------------------------
 
-        historical_scores = (
-            calculate_historical_scores(
-                source_df
-            )
+        historical_scores = calculate_historical_scores(
+            source_df
         )
 
-        # ============================================
-        # TREND
-        # ============================================
-
+        variation = 0.0
         trend = "N/A"
-        variation = 0
 
         if (
             "N" in historical_scores
@@ -156,47 +121,41 @@ if uploaded_file is not None:
                 historical_scores["N-1"]
             )
 
-        # ============================================
+        # -------------------------------------------------
         # KPI
-        # ============================================
+        # -------------------------------------------------
 
-        st.success(
-            "Calcul effectué avec succès"
-        )
+        st.success("Fichier traité avec succès")
 
-        kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+        c1, c2, c3, c4 = st.columns(4)
 
-        with kpi1:
-
+        with c1:
             st.metric(
                 "Score Global",
                 f"{score_global:.2f}"
             )
 
-        with kpi2:
-
+        with c2:
             st.metric(
                 "Rating",
                 rating_info["rating"]
             )
 
-        with kpi3:
-
+        with c3:
             st.metric(
                 "Variation",
                 f"{variation:.2f}"
             )
 
-        with kpi4:
-
+        with c4:
             st.metric(
                 "Tendance",
                 trend
             )
 
-        # ============================================
-        # DESCRIPTION RATING
-        # ============================================
+        # -------------------------------------------------
+        # Description
+        # -------------------------------------------------
 
         st.subheader("Notation")
 
@@ -204,16 +163,13 @@ if uploaded_file is not None:
             rating_info["description"]
         )
 
-        # ============================================
-        # RESULTATS DETAILLES
-        # ============================================
+        # -------------------------------------------------
+        # Tableau détaillé
+        # -------------------------------------------------
 
-        st.subheader(
-            "Résultats détaillés"
-        )
+        st.subheader("Résultats détaillés")
 
-        display_cols = [
-
+        columns_to_show = [
             "KPI",
             "Poids %",
             "Moyenne",
@@ -222,41 +178,37 @@ if uploaded_file is not None:
             "Sens",
             "Z Ajusté",
             "Score Pondéré"
-
         ]
 
-        available_cols = [
+        existing_columns = [
 
             col
-            for col in display_cols
+            for col in columns_to_show
             if col in results_df.columns
 
         ]
 
         st.dataframe(
-            results_df[available_cols],
+            results_df[existing_columns],
             use_container_width=True
         )
 
-        # ============================================
-        # HISTORIQUE SCORES
-        # ============================================
+        # -------------------------------------------------
+        # Historique
+        # -------------------------------------------------
 
-        st.subheader(
-            "Historique des Scores"
-        )
+        st.subheader("Historique des Scores")
 
         hist_df = pd.DataFrame({
 
             "Période":
-            list(historical_scores.keys()),
+                list(historical_scores.keys()),
 
             "Score":
-            [
-                round(x, 4)
-                for x in historical_scores.values()
-            ]
-
+                [
+                    round(x, 4)
+                    for x in historical_scores.values()
+                ]
         })
 
         st.dataframe(
@@ -264,9 +216,9 @@ if uploaded_file is not None:
             use_container_width=True
         )
 
-        # ============================================
-        # GRAPHIQUE EVOLUTION
-        # ============================================
+        # -------------------------------------------------
+        # Graphique
+        # -------------------------------------------------
 
         chart_path = generate_score_chart(
             historical_scores,
@@ -282,4 +234,94 @@ if uploaded_file is not None:
             use_container_width=True
         )
 
-        # ============================================
+        # -------------------------------------------------
+        # Rapport Excel
+        # -------------------------------------------------
+
+        excel_path = generate_excel_report(
+            results_df=results_df,
+            score_global=score_global,
+            rating_info=rating_info,
+            history_scores=historical_scores
+        )
+
+        # -------------------------------------------------
+        # Rapport PDF
+        # -------------------------------------------------
+
+        pdf_path = generate_pdf_report(
+            results_df=results_df,
+            score_global=score_global,
+            rating_info=rating_info,
+            history_scores=historical_scores,
+            chart_path=chart_path
+        )
+
+        # -------------------------------------------------
+        # Téléchargements
+        # -------------------------------------------------
+
+        st.subheader("Téléchargement")
+
+        d1, d2 = st.columns(2)
+
+        with d1:
+
+            with open(excel_path, "rb") as f:
+
+                st.download_button(
+                    label="📊 Télécharger Excel",
+                    data=f,
+                    file_name="rapport_zscore.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    use_container_width=True
+                )
+
+        with d2:
+
+            with open(pdf_path, "rb") as f:
+
+                st.download_button(
+                    label="📄 Télécharger PDF",
+                    data=f,
+                    file_name="rapport_zscore.pdf",
+                    mime="application/pdf",
+                    use_container_width=True
+                )
+
+        # -------------------------------------------------
+        # Synthèse
+        # -------------------------------------------------
+
+        st.subheader("Synthèse")
+
+        st.markdown(
+            f"""
+### Résultat
+
+- **Score Quantitatif :** {score_global:.2f}
+- **Rating :** {rating_info['rating']}
+- **Tendance :** {trend}
+- **Variation :** {variation:.2f}
+
+**Commentaire**
+
+{rating_info['description']}
+"""
+        )
+
+    except Exception as e:
+
+        st.error(
+            f"Erreur durant le traitement : {str(e)}"
+        )
+
+# =====================================================
+# FOOTER
+# =====================================================
+
+st.markdown("---")
+
+st.caption(
+    "Application de scoring quantitatif basée sur la méthode Z-Score"
+)
