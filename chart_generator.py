@@ -1,34 +1,49 @@
-import matplotlib.pyplot as plt
+import pandas as pd
+
+from config import OUTPUT_FILE
 
 
-def generate_score_chart(scores, output_path):
+def generate_excel_report(
+    results_df,
+    score_global,
+    rating_info,
+    history_scores
+):
 
-    labels = list(scores.keys())
+    with pd.ExcelWriter(
+        OUTPUT_FILE,
+        engine="xlsxwriter"
+    ) as writer:
 
-    values = list(scores.values())
+        results_df.to_excel(
+            writer,
+            sheet_name="Scoring",
+            index=False
+        )
 
-    plt.figure(figsize=(8, 4))
+        synthese = pd.DataFrame([
+            {
+                "Score Global": round(score_global, 4),
+                "Rating": rating_info["rating"],
+                "Description": rating_info["description"]
+            }
+        ])
 
-    plt.plot(
-        labels,
-        values,
-        marker="o",
-        linewidth=2
-    )
+        synthese.to_excel(
+            writer,
+            sheet_name="Notation",
+            index=False
+        )
 
-    plt.grid(True)
+        historique = pd.DataFrame({
+            "Periode": list(history_scores.keys()),
+            "Score": list(history_scores.values())
+        })
 
-    plt.title(
-        "Evolution du Score Quantitatif"
-    )
+        historique.to_excel(
+            writer,
+            sheet_name="Historique",
+            index=False
+        )
 
-    plt.ylabel("Score")
-
-    plt.tight_layout()
-
-    plt.savefig(output_path)
-
-    plt.close()
-
-    return output_path
-``
+    return OUTPUT_FILE
