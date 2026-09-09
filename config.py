@@ -1,9 +1,10 @@
 """
-Configuration centrale du modèle Z-Score
+config.py
+Configuration centrale de l'application Z-Score
 """
 
 # =====================================================
-# HISTORIQUE
+# COLONNES HISTORIQUES
 # =====================================================
 
 HISTORICAL_COLUMNS = [
@@ -14,14 +15,127 @@ HISTORICAL_COLUMNS = [
     "N-1"
 ]
 
-CURRENT_YEAR_COLUMN = "N"
+CURRENT_COLUMN = "N"
 
 # =====================================================
-# SENS DES INDICATEURS
+# PARAMETRES DE CALCUL
 # =====================================================
 
-# Haut = plus élevé est meilleur
-# Bas = plus faible est meilleur
+MIN_HISTORY = 3
+
+EPSILON = 1e-10
+
+MAX_ZSCORE = 5
+
+MIN_ZSCORE = -5
+
+# =====================================================
+# FICHIERS DE SORTIE
+# =====================================================
+
+OUTPUT_FILE = "outputs/rapport_zscore.xlsx"
+
+PDF_OUTPUT_FILE = "outputs/rapport_zscore.pdf"
+
+CHART_OUTPUT_FILE = "outputs/evolution_score.png"
+
+# =====================================================
+# MAPPING RATING
+# =====================================================
+
+RATING_SCALE = [
+
+    {
+        "rating": "AAA",
+        "min_score": 3.00
+    },
+
+    {
+        "rating": "AA",
+        "min_score": 2.00
+    },
+
+    {
+        "rating": "A",
+        "min_score": 1.00
+    },
+
+    {
+        "rating": "BBB",
+        "min_score": 0.50
+    },
+
+    {
+        "rating": "BB",
+        "min_score": 0.00
+    },
+
+    {
+        "rating": "B",
+        "min_score": -1.00
+    },
+
+    {
+        "rating": "CCC",
+        "min_score": -999
+    }
+]
+
+# =====================================================
+# COULEURS DASHBOARD
+# =====================================================
+
+COLOR_POSITIVE = "#2E8B57"
+
+COLOR_NEGATIVE = "#DC143C"
+
+COLOR_NEUTRAL = "#808080"
+
+# =====================================================
+# DESCRIPTIONS DES RATINGS
+# =====================================================
+
+RATING_DESCRIPTIONS = {
+
+    "AAA": {
+        "description": "Qualité de crédit exceptionnelle",
+        "risk_level": "Très faible"
+    },
+
+    "AA": {
+        "description": "Qualité de crédit très élevée",
+        "risk_level": "Faible"
+    },
+
+    "A": {
+        "description": "Qualité de crédit élevée",
+        "risk_level": "Modéré faible"
+    },
+
+    "BBB": {
+        "description": "Qualité de crédit satisfaisante",
+        "risk_level": "Modéré"
+    },
+
+    "BB": {
+        "description": "Qualité de crédit spéculative",
+        "risk_level": "Modéré élevé"
+    },
+
+    "B": {
+        "description": "Risque de crédit élevé",
+        "risk_level": "Elevé"
+    },
+
+    "CCC": {
+        "description": "Risque de crédit très élevé",
+        "risk_level": "Très élevé"
+    }
+}
+
+# =====================================================
+# SENS PAR DEFAUT DES KPI
+# =====================================================
 
 KPI_DIRECTIONS = {
 
@@ -81,98 +195,14 @@ DEFAULT_WEIGHTS = {
 }
 
 # =====================================================
-# PARAMETRES STATISTIQUES
-# =====================================================
-
-MIN_HISTORICAL_YEARS = 3
-
-EPSILON = 1e-10
-
-MAX_ZSCORE = 5
-
-MIN_ZSCORE = -5
-
-# =====================================================
-# MAPPING SCORE -> RATING
-# =====================================================
-
-RATING_SCALE = [
-
-    {
-        "rating": "AAA",
-        "min_score": 2.50
-    },
-
-    {
-        "rating": "AA",
-        "min_score": 2.00
-    },
-
-    {
-        "rating": "A",
-        "min_score": 1.50
-    },
-
-    {
-        "rating": "BBB",
-        "min_score": 1.00
-    },
-
-    {
-        "rating": "BB",
-        "min_score": 0.50
-    },
-
-    {
-        "rating": "B",
-        "min_score": 0.00
-    },
-
-    {
-        "rating": "CCC",
-        "min_score": -999
-    }
-]
-
-# =====================================================
-# COULEURS DASHBOARD
-# =====================================================
-
-COLOR_POSITIVE = "#2E8B57"
-COLOR_NEGATIVE = "#DC143C"
-COLOR_NEUTRAL = "#808080"
-
-# =====================================================
-# EXPORT
-# =====================================================
-
-OUTPUT_EXCEL_FILE = "rapport_zscore.xlsx"
-
-OUTPUT_SHEET_NAME = "Scoring"
-
-# =====================================================
-# COLONNES RESULTAT
-# =====================================================
-
-OUTPUT_COLUMNS = [
-
-    "KPI",
-    "Poids %",
-    "Moyenne",
-    "Ecart-Type",
-    "Z-Score",
-    "Sens",
-    "Z Ajusté",
-    "Score Pondéré"
-]
-
-# =====================================================
 # ALERTES CREDIT
 # =====================================================
 
 ALERT_THRESHOLDS = {
 
-    "Dette nette/EBITDA": 5.0,
+    "Dette nette/EBITDA": 5.00,
+
+    "Dette nette/Fonds propres": 2.00,
 
     "Gearing": 1.50,
 
