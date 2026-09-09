@@ -1,29 +1,38 @@
 """
+pdf_generator.py
 Génération du rapport PDF de notation
 """
 
+from datetime import datetime
+
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
+
 from reportlab.platypus import (
     SimpleDocTemplate,
     Paragraph,
     Spacer,
     Table,
     TableStyle,
-    PageBreak
+    PageBreak,
+    Image
 )
 
 from reportlab.lib.styles import getSampleStyleSheet
-from datetime import datetime
 
-PDF_OUTPUT_FILE = "outputs/rapport_zscore.pdf"
+from config import PDF_OUTPUT_FILE
 
 
 def generate_pdf_report(
     results_df,
     score_global,
-    rating_info
+    rating_info,
+    history_scores,
+    chart_path
 ):
+    """
+    Génère le rapport PDF complet.
+    """
 
     doc = SimpleDocTemplate(
         PDF_OUTPUT_FILE,
@@ -34,7 +43,9 @@ def generate_pdf_report(
 
     elements = []
 
-    # Titre
+    # =====================================================
+    # TITRE
+    # =====================================================
 
     elements.append(
         Paragraph(
@@ -45,11 +56,13 @@ def generate_pdf_report(
 
     elements.append(Spacer(1, 20))
 
-    # Informations générales
+    # =====================================================
+    # INFORMATIONS GENERALES
+    # =====================================================
 
     elements.append(
         Paragraph(
-            f"Date : {datetime.now().strftime('%d/%m/%Y')}",
+            f"Date d'analyse : {datetime.now().strftime('%d/%m/%Y')}",
             styles["Normal"]
         )
     )
@@ -63,7 +76,7 @@ def generate_pdf_report(
 
     elements.append(
         Paragraph(
-            f"Notation : {rating_info['rating']}",
+            f"Rating : {rating_info['rating']}",
             styles["Normal"]
         )
     )
@@ -77,11 +90,13 @@ def generate_pdf_report(
 
     elements.append(Spacer(1, 20))
 
-    # Tableau KPI
+    # =====================================================
+    # TABLEAU KPI
+    # =====================================================
 
     table_data = [[
         "KPI",
-        "Poids",
+        "Poids %",
         "Z Ajusté",
         "Score Pondéré"
     ]]
@@ -91,28 +106,90 @@ def generate_pdf_report(
         table_data.append([
 
             str(row["KPI"]),
-            round(row["Poids %"], 2),
-            round(row["Z Ajusté"], 2),
-            round(row["Score Pondéré"], 2)
 
+            round(
+                float(row["Poids %"]),
+                2
+            ),
+
+            round(
+                float(row["Z Ajusté"]),
+                2
+            ),
+
+            round(
+                float(row["Score Pondéré"]),
+                2
+            )
         ])
 
     table = Table(table_data)
 
     table.setStyle(
+
         TableStyle([
 
-            ('BACKGROUND', (0, 0), (-1, 0),
-             colors.darkblue),
+            (
+                "BACKGROUND",
+                (0, 0),
+                (-1, 0),
+                colors.darkblue
+            ),
 
-            ('TEXTCOLOR', (0, 0), (-1, 0),
-             colors.white),
+            (
+                "TEXTCOLOR",
+                (0, 0),
+                (-1, 0),
+                colors.white
+            ),
 
-            ('GRID', (0, 0), (-1, -1),
-             1, colors.black),
+            (
+                "GRID",
+                (0, 0),
+                (-1, -1),
+                1,
+                colors.black
+            ),
 
-            ('FONTNAME', (0, 0), (-1, 0),
-             'Helvetica-Bold'),
+            (
+                "FONTNAME",
+                (0, 0),
+                (-1, 0),
+                "Helvetica-Bold"
+            ),
 
-            ('BACKGROUND', (0, 1), (-1, -1),
-             colors.
+            (
+                "BACKGROUND",
+                (0, 1),
+                (-1, -1),
+                colors.whitesmoke
+            )
+
+        ])
+    )
+
+    elements.append(table)
+
+    # =====================================================
+    # PAGE SUIVANTE
+    # =====================================================
+
+    elements.append(PageBreak())
+
+    elements.append(
+        Paragraph(
+            "Historique du Score",
+            styles["Heading1"]
+        )
+    )
+
+    # =====================================================
+    # HISTORIQUE
+    # =====================================================
+
+    hist_data = [[
+        "Période",
+        "Score"
+    ]]
+
+    for period, score in history_scores.items
