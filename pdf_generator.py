@@ -1,8 +1,3 @@
-"""
-pdf_generator.py
-Génération du rapport PDF de notation
-"""
-
 from datetime import datetime
 
 from reportlab.lib import colors
@@ -30,9 +25,6 @@ def generate_pdf_report(
     history_scores,
     chart_path
 ):
-    """
-    Génère le rapport PDF complet.
-    """
 
     doc = SimpleDocTemplate(
         PDF_OUTPUT_FILE,
@@ -43,10 +35,6 @@ def generate_pdf_report(
 
     elements = []
 
-    # =====================================================
-    # TITRE
-    # =====================================================
-
     elements.append(
         Paragraph(
             "Rapport de Scoring Quantitatif",
@@ -56,13 +44,9 @@ def generate_pdf_report(
 
     elements.append(Spacer(1, 20))
 
-    # =====================================================
-    # INFORMATIONS GENERALES
-    # =====================================================
-
     elements.append(
         Paragraph(
-            f"Date d'analyse : {datetime.now().strftime('%d/%m/%Y')}",
+            f"Date : {datetime.now().strftime('%d/%m/%Y')}",
             styles["Normal"]
         )
     )
@@ -83,66 +67,45 @@ def generate_pdf_report(
 
     elements.append(
         Paragraph(
-            f"Commentaire : {rating_info['description']}",
+            rating_info["description"],
             styles["Normal"]
         )
     )
 
     elements.append(Spacer(1, 20))
 
-    # =====================================================
-    # TABLEAU KPI
-    # =====================================================
-
     table_data = [[
         "KPI",
         "Poids %",
-        "Z Ajusté",
-        "Score Pondéré"
+        "Z Ajuste",
+        "Score Pondere"
     ]]
 
     for _, row in results_df.iterrows():
 
         table_data.append([
-
             str(row["KPI"]),
-
-            round(
-                float(row["Poids %"]),
-                2
-            ),
-
-            round(
-                float(row["Z Ajusté"]),
-                2
-            ),
-
-            round(
-                float(row["Score Pondéré"]),
-                2
-            )
+            round(float(row["Poids %"]), 2),
+            round(float(row["Z Ajusté"]), 2),
+            round(float(row["Score Pondéré"]), 2)
         ])
 
     table = Table(table_data)
 
     table.setStyle(
-
         TableStyle([
-
             (
                 "BACKGROUND",
                 (0, 0),
                 (-1, 0),
                 colors.darkblue
             ),
-
             (
                 "TEXTCOLOR",
                 (0, 0),
                 (-1, 0),
                 colors.white
             ),
-
             (
                 "GRID",
                 (0, 0),
@@ -150,46 +113,78 @@ def generate_pdf_report(
                 1,
                 colors.black
             ),
-
             (
                 "FONTNAME",
                 (0, 0),
                 (-1, 0),
                 "Helvetica-Bold"
             ),
-
             (
                 "BACKGROUND",
                 (0, 1),
                 (-1, -1),
                 colors.whitesmoke
             )
-
         ])
     )
 
     elements.append(table)
 
-    # =====================================================
-    # PAGE SUIVANTE
-    # =====================================================
-
     elements.append(PageBreak())
 
     elements.append(
         Paragraph(
-            "Historique du Score",
+            "Historique des Scores",
             styles["Heading1"]
         )
     )
 
-    # =====================================================
-    # HISTORIQUE
-    # =====================================================
+    hist_data = [["Periode", "Score"]]
 
-    hist_data = [[
-        "Période",
-        "Score"
-    ]]
+    for period, score in history_scores.items():
 
-    for period, score in history_scores.items
+        hist_data.append([
+            str(period),
+            round(float(score), 2)
+        ])
+
+    hist_table = Table(hist_data)
+
+    hist_table.setStyle(
+        TableStyle([
+            (
+                "BACKGROUND",
+                (0, 0),
+                (-1, 0),
+                colors.lightgrey
+            ),
+            (
+                "GRID",
+                (0, 0),
+                (-1, -1),
+                1,
+                colors.black
+            )
+        ])
+    )
+
+    elements.append(hist_table)
+
+    elements.append(Spacer(1, 20))
+
+    try:
+
+        elements.append(
+            Image(
+                chart_path,
+                width=450,
+                height=250
+            )
+        )
+
+    except Exception:
+        pass
+
+    doc.build(elements)
+
+    return PDF_OUTPUT_FILE
