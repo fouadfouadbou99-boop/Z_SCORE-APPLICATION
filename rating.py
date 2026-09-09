@@ -76,3 +76,14 @@ def get_rating_color(rating: str) -> str:
     }
 
     return colors.get(rating, "#808080")
+def get_trend(current_score, previous_score):
+
+    delta = current_score - previous_score
+
+    if delta >= 0.20:
+        return "Amélioration"
+
+    if delta <= -0.20:
+        return "Dégradation"
+
+    return "Stable"
